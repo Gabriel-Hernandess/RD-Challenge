@@ -2,7 +2,7 @@
 
 Este projeto é uma API desenvolvida em **Django Rest Framework**, com autenticação, gestão de sondas (`probes`) e suporte a testes automatizados com **pytest**.
 Implementei um simples **Frontend** com templates do Django para simular melhor uma aplicação real, com exibição das malhas e suas respectivas funções de forma mais dinâmica com **JS**.
-Junto de tudo isso, ainda conteinerizei a aplicação com **Docker** e utilizei **Poetry** para gerenciamento de dependências.
+Junto de tudo isso, ainda conteinerizei a aplicação com **Docker** e utilizei **Poetry** para gerenciamento de dependências e **PostgreSQL** como banco de dados.
 
 ---
 
@@ -22,7 +22,7 @@ Junto de tudo isso, ainda conteinerizei a aplicação com **Docker** e utilizei 
 
 ### 1. Clone o repositório
 git clone https://github.com/Gabriel-Hernandess/RD-Challenge.git
-cd rd_station
+cd RD-Challenge
 
 ### 2. Suba o ambiente com Docker
 docker compose up --build
