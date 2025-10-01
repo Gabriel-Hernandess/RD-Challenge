@@ -21,6 +21,18 @@ def test_move_probe(auth_client):
     assert 0 <= response.data["pos_y"] <= probe.mesh_y
 
 @pytest.mark.django_db
+def test_move_probe_invalid_command(auth_client):
+    # Cria uma sonda
+    probe = Probe.objects.create(direction="NORTH", mesh_x=5, mesh_y=5)
+    
+    # Comando inválido 'Z'
+    response = auth_client.put(f"/api/probes/{probe.id}/move/", {"commands": "MRZL"}, format="json")
+    
+    # Deve retornar 400 com erro
+    assert response.status_code == 400
+    assert "error" in response.data
+
+@pytest.mark.django_db
 def test_move_probe_out_of_bounds(auth_client):
     probe = Probe.objects.create(direction="NORTH", mesh_x=1, mesh_y=1)
     response = auth_client.put(f"/api/probes/{probe.id}/move/", {"commands": "MMMM"}, format="json")

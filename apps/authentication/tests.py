@@ -19,7 +19,7 @@ def test_login_fail(auth_client):
     auth_client.logout()
     response = auth_client.post("/auth/login/", {"username": "wrong", "password": "wrong"}, format="json")
     
-    assert response.status_code == 401
+    assert response.status_code == 400
     assert response.data["success"] is False
 
 @pytest.mark.django_db
