@@ -27,6 +27,11 @@ cd RD-Challenge
 ### 2. Suba o ambiente com Docker
 docker compose up --build
 
+> ⚠️ Observação: As portas padrão estão configuradas (ex.: 5432 para PostgreSQL, 8000 para Django). 
+> Caso algum erro de "porta em uso" ocorra, você pode:
+> - Alterar a porta no `docker-compose.yml`, ou
+> - Desligar o serviço que está usando a porta atualmente.
+
 ### 3. Aplique as migrações
 docker compose exec backend python manage.py makemigrations
 docker compose exec backend python manage.py migrate
