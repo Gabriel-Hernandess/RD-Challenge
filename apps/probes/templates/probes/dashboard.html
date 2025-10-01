@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Probes</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0a1628 0%, #132744 100%);
+            color: white;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: rgba(0,0,0,0.3);
+        }
+        header .logo {
+            font-weight: bold;
+            font-size: 1.5em;
+        }
+        header button {
+            background: #1e3a6e;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        main {
+            padding: 20px 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            color: white;
+        }
+        table th, table td {
+            border: 1px solid #ffffff33;
+            padding: 8px;
+            text-align: center;
+        }
+        table th {
+            background: #1e3a6e;
+        }
+        .btn {
+            background: #ffffff;
+            color: #0a1628;
+            border: none;
+            padding: 5px 10px;
+            margin: 0 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+        }
+        .modal-content {
+            background-color: #0a1628;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+            color: white;
+            position: relative;
+        }
+        .modal-content h3 {
+            margin-top: 0;
+        }
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .grid {
+            display: grid;
+            gap: 2px;
+            margin-top: 10px;
+        }
+        .cell {
+            width: 30px;
+            height: 30px;
+            background: #1e3a6e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 14px;
+        }
+        .probe-pos {
+            background: #ffffff;
+            color: #0a1628;
+            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 10px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 5px;
+            border-radius: 4px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div class="logo">Probes Dashboard</div>
+    <div>
+        <button onclick="logout()">Logout</button>
+        <button onclick="openNewProbeModal()">Nova Sonda</button>
+    </div>
+</header>
+<main>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>X</th>
+                <th>Y</th>
+                <th>Direction</th>
+                <th>Mesh X</th>
+                <th>Mesh Y</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for probe in probes %}
+            <tr>
+                <td>{{ probe.id }}</td>
+                <td>{{ probe.pos_x }}</td>
+                <td>{{ probe.pos_y }}</td>
+                <td>{{ probe.direction }}</td>
+                <td>{{ probe.mesh_x }}</td>
+                <td>{{ probe.mesh_y }}</td>
+                <td>
+                    <button class="btn" onclick="openViewModal('{{ probe.id }}')">Visualizar</button>
+                    <button class="btn" onclick="openMoveModal('{{ probe.id }}')">Mover</button>
+                    <button class="btn" onclick="deleteProbe('{{ probe.id }}')">Deletar</button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7">Nenhuma sonda cadastrada.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</main>
+
+<!-- Modal Visualizar / Grid -->
+<div id="probeModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h3>Visualizar Sonda</h3>
+        <div id="probeGrid" class="grid"></div>
+        <p id="probeInfo"></p>
+    </div>
+</div>
+
+<!-- Modal Mover -->
+<div id="moveModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeMoveModal()">&times;</span>
+        <h3>Mover Sonda</h3>
+        <div id="moveGrid" class="grid"></div>
+        <p id="moveInfo"></p>
+        <div class="form-group">
+            <label>Comandos (M, L, R):</label>
+            <input type="text" id="commandsInput" maxlength="100" pattern="[MLR]*" placeholder="Ex: MRML">
+        </div>
+        <button onclick="sendMove()">Enviar</button>
+    </div>
+</div>
+
+<!-- Modal Nova Sonda -->
+<div id="newProbeModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeNewProbeModal()">&times;</span>
+        <h3>Criar Nova Sonda</h3>
+        <form id="newProbeForm">
+            <div class="form-group">
+                <label>Direção:</label>
+                <select name="direction" required>
+                    <option value="NORTH">NORTH</option>
+                    <option value="SOUTH">SOUTH</option>
+                    <option value="EAST">EAST</option>
+                    <option value="WEST">WEST</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Mesh X:</label>
+                <input type="number" name="mesh_x" min="1" value="5" required>
+            </div>
+            <div class="form-group">
+                <label>Mesh Y:</label>
+                <input type="number" name="mesh_y" min="1" value="5" required>
+            </div>
+            <button type="submit">Criar</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    let currentProbeId = null;
+
+    // Fetch e logout
+    function logout() {
+        fetch('/auth/logout/', { method: 'POST', credentials: 'include' })
+            .then(() => window.location.href='/login/')
+            .catch(() => alert('Erro ao deslogar'));
+    }
+
+    // Modal Visualizar
+    const probeModal = document.getElementById('probeModal');
+    const probeGrid = document.getElementById('probeGrid');
+    const probeInfo = document.getElementById('probeInfo');
+
+    function openViewModal(id) {
+        currentProbeId = id;
+        fetch(`/api/probes/${id}/`, { credentials: 'include' })
+            .then(res => res.json())
+            .then(data => renderGrid(probeGrid, data));
+        probeModal.style.display = 'block';
+    }
+
+    function closeModal() {
+        probeModal.style.display = 'none';
+        probeGrid.innerHTML = '';
+        probeInfo.innerHTML = '';
+    }
+
+    // Modal Mover
+    const moveModal = document.getElementById('moveModal');
+    const moveGrid = document.getElementById('moveGrid');
+    const moveInfo = document.getElementById('moveInfo');
+    const commandsInput = document.getElementById('commandsInput');
+
+    function openMoveModal(id) {
+        currentProbeId = id;
+        fetch(`/api/probes/${id}/`, { credentials: 'include' })
+            .then(res => res.json())
+            .then(data => renderGrid(moveGrid, data));
+        moveModal.style.display = 'block';
+    }
+
+    function closeMoveModal() {
+        moveModal.style.display = 'none';
+        moveGrid.innerHTML = '';
+        moveInfo.innerHTML = '';
+        commandsInput.value = '';
+    }
+
+    // Modal Nova Sonda
+    const newProbeModal = document.getElementById('newProbeModal');
+    const newProbeForm = document.getElementById('newProbeForm');
+    function openNewProbeModal() { newProbeModal.style.display = 'block'; }
+    function closeNewProbeModal() { newProbeModal.style.display = 'none'; newProbeForm.reset(); }
+
+    newProbeForm.onsubmit = function(e) {
+        e.preventDefault();
+        const formData = new FormData(newProbeForm);
+        const data = { direction: formData.get('direction'), mesh_x: parseInt(formData.get('mesh_x')), mesh_y: parseInt(formData.get('mesh_y')) };
+        fetch('/api/probes/', {
+            method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify(data)
+        }).then(res => { if(res.ok) window.location.reload(); else res.json().then(d => alert(d.message || 'Erro')); })
+        .catch(() => alert('Erro ao criar sonda'));
+    }
+
+    // Render grid
+    function renderGrid(container, probe) {
+        container.innerHTML = '';
+        container.style.gridTemplateColumns = `repeat(${probe.mesh_x}, 30px)`;
+        container.style.gridTemplateRows = `repeat(${probe.mesh_y}, 30px)`;
+        for(let y=probe.mesh_y-1; y>=0; y--) {
+            for(let x=0; x<probe.mesh_x; x++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                if(x===probe.pos_x && y===probe.pos_y) cell.classList.add('probe-pos');
+                if(x===probe.pos_x && y===probe.pos_y) {
+                    switch(probe.direction){
+                        case 'NORTH': cell.innerHTML = '↑'; break;
+                        case 'SOUTH': cell.innerHTML = '↓'; break;
+                        case 'EAST': cell.innerHTML = '→'; break;
+                        case 'WEST': cell.innerHTML = '←'; break;
+                    }
+                }
+                container.appendChild(cell);
+            }
+        }
+        if(probeInfo) probeInfo.innerHTML = `Posição: (${probe.pos_x}, ${probe.pos_y}) | Direção: ${probe.direction}`;
+        if(moveInfo) moveInfo.innerHTML = `Posição: (${probe.pos_x}, ${probe.pos_y}) | Direção: ${probe.direction}`;
+    }
+
+    // Mover sonda
+    function sendMove() {
+        const commands = commandsInput.value.toUpperCase();
+        if(!/^[MLR]*$/.test(commands)) { alert('Comandos inválidos!'); return; }
+        fetch(`/api/probes/${currentProbeId}/move/`, {
+            method:'PUT', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({commands})
+        })
+        .then(res => { if(res.ok) window.location.reload(); else res.json().then(d=>alert(d.error || 'Erro ao mover')); })
+        .catch(()=>alert('Erro ao mover sonda'));
+    }
+
+    // Deletar sonda
+    function deleteProbe(id) {
+        if(confirm('Deseja realmente deletar esta sonda?')) {
+            fetch(`/api/probes/${id}/`, { method:'DELETE', credentials:'include' })
+            .then(res => { if(res.ok) window.location.reload(); else alert('Erro ao deletar'); })
+            .catch(()=>alert('Erro ao deletar'));
+        }
+    }
+
+    // Fechar modais clicando fora
+    window.onclick = function(event) {
+        if(event.target == probeModal) closeModal();
+        if(event.target == moveModal) closeMoveModal();
+        if(event.target == newProbeModal) closeNewProbeModal();
+    }
+</script>
+</body>
+</html>
