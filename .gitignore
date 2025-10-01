@@ -1,3 +1,67 @@
-.vscode
-*__pycache__
-.pytest_cache
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.sqlite3
+*.env
+*.venv
+env/
+venv/
+ENV/
+.env.*
+.venv/
+
+# Poetry
+.poetry/
+.cache/pypoetry/
+*.lock
+
+# Django
+*.log
+*.pot
+*.pyc
+*.mo
+db.sqlite3
+media/
+staticfiles/
+*.sqlite3-journal
+
+# Migrations
+*/migrations/*.pyc
+*/migrations/*.py[cod]
+*/migrations/__pycache__/
+*/migrations/*.pyo
+# Mas mantenha __init__.py
+!*/migrations/__init__.py
+
+# Docker
+*.pid
+*.sock
+*.log
+docker-compose.override.yml
+docker-compose.override.yml.example
+
+# IDEs e editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Testes e coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
